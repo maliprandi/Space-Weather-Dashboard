@@ -88,13 +88,13 @@ export function Timeline() {
         <div className="flex gap-2">
           {/* Y-axis: event-type labels stacked vertically, aligned to rows */}
           <div className="relative h-14 w-12 shrink-0 text-[9px] tracking-widest text-slate-500">
-            {(["flare", "cme", "gst", "neo"] as const).map((t, i) => (
+            {(["flare", "cme", "gst", "neo", "fireball"] as const).map((t, i) => (
               <div
                 key={t}
                 className="absolute right-0 -translate-y-1/2 pr-1 text-right"
-                style={{ top: `${[0.2, 0.4, 0.6, 0.8][i] * 100}%`, color: TYPE_COLOR[t] }}
+                style={{ top: `${[0.17, 0.34, 0.5, 0.66, 0.83][i] * 100}%`, color: TYPE_COLOR[t] }}
               >
-                {t.toUpperCase()}
+                {t === "fireball" ? "FIR" : t.toUpperCase()}
               </div>
             ))}
           </div>
@@ -118,7 +118,7 @@ export function Timeline() {
               {events.map((ev) => {
                 const p = (ev.time - windowStart) / (windowEnd - windowStart);
                 if (p < 0 || p > 1) return null;
-                const row = { flare: 0.2, cme: 0.4, gst: 0.6, neo: 0.8 }[ev.type];
+                const row = { flare: 0.17, cme: 0.34, gst: 0.5, neo: 0.66, fireball: 0.83 }[ev.type];
                 return (
                   <button
                     key={ev.id}
