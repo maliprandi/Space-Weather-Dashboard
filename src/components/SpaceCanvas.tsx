@@ -58,11 +58,11 @@ function eventActive(ev: DashEvent, cursor: number): { active: boolean; progress
     return { active, progress: 0 };
   }
   if (ev.type === "fireball") {
-    // Visible window: ±36h around impact; progress 0→1 across that span for streak animation.
+    // Always visible across the loaded window so all impact sites are findable
+    // around Earth. Progress is used only for streak animation phase.
     const span = 72 * 3600_000;
     const t0 = ev.time - 36 * 3600_000;
-    const active = cursor >= t0 && cursor <= ev.time + 36 * 3600_000;
-    return { active, progress: Math.min(1, Math.max(0, (cursor - t0) / span)) };
+    return { active: true, progress: Math.min(1, Math.max(0, (cursor - t0) / span)) };
   }
   // neo — visible for a generous window around close approach so they're easy to spot
   const active = cursor >= ev.time - 3 * 24 * 3600_000 && cursor <= ev.time + 3 * 24 * 3600_000;
