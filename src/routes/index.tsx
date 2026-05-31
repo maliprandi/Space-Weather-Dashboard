@@ -26,12 +26,17 @@ function Index() {
         setWindow(startMs, endMs);
         useDash.getState().setCursor(endMs);
 
-        const [donki, neos] = await Promise.all([
+        const [donki, neos, fireballs] = await Promise.all([
           fetchDonki(start, end).catch((e) => { console.error(e); return { FLR: [], CME: [], GST: [] }; }),
           fetchNeos(start, end).catch((e) => { console.error(e); return { near_earth_objects: {} }; }),
+          fetchFireballs(start, end).catch((e) => { console.error(e); return { signature: { source: "", version: "" }, count: "0", fields: [], data: [] }; }),
         ]);
         if (cancelled) return;
-        const evs = [...normalizeDonki(donki as any), ...normalizeNeos(neos as any)].sort((a, b) => a.time - b.time);
+        const evs = [
+          ...normalizeDonki(donki as any),
+          ...normalizeNeos(neos as any),
+          ...normalizeFireballs(fireballs as any),
+        ].sort((a, b) => a.time - b.time);
         setEvents(evs);
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? "Failed to load NASA data");
