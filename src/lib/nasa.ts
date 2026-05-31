@@ -1,16 +1,17 @@
 import {
   cmeThreat,
+  fireballThreat,
   flareThreat,
   gstThreat,
   neoThreat,
   laymanCme,
+  laymanFireball,
   laymanFlare,
   laymanGst,
   laymanNeo,
   type ThreatLevel,
 } from "./threat";
 
-import { fireballThreat, laymanFireball } from "./threat";
 
 export type EventType = "flare" | "cme" | "gst" | "neo" | "fireball";
 
