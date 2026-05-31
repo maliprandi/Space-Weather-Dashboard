@@ -53,6 +53,28 @@ export function neoThreat(diameterM: number, missLD: number, hazardous: boolean)
   return lvl;
 }
 
+// Energy in kilotons of TNT equivalent. Chelyabinsk ≈ 440 kt, Tunguska ≈ 10–15 Mt.
+export function fireballThreat(energyKt: number): ThreatLevel {
+  if (energyKt >= 100) return "severe";
+  if (energyKt >= 10) return "high";
+  if (energyKt >= 1) return "moderate";
+  if (energyKt >= 0.1) return "low";
+  return "none";
+}
+
+export function laymanFireball(energyKt: number, location: string | null): string {
+  const where = location ? ` over ${location}` : "";
+  if (energyKt >= 100)
+    return `A massive bolide${where} released ${energyKt.toFixed(1)} kt of energy — comparable to a nuclear weapon, capable of shattering windows and causing injuries on the ground.`;
+  if (energyKt >= 10)
+    return `A large fireball${where} released ${energyKt.toFixed(1)} kt of energy. Likely seen for hundreds of km and heard as a sonic boom.`;
+  if (energyKt >= 1)
+    return `A bright fireball${where} released ${energyKt.toFixed(2)} kt of energy — brighter than the full moon and visible across a wide region.`;
+  if (energyKt >= 0.1)
+    return `A modest fireball${where} released ${energyKt.toFixed(2)} kt of energy. Bright enough to be seen by casual observers under clear skies.`;
+  return `A small bolide${where} detected by US Government sensors. Minor flash with no surface effects.`;
+}
+
 export function laymanFlare(cls: string): string {
   const c = (cls || "").toUpperCase();
   if (c.startsWith("X"))

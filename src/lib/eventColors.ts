@@ -7,4 +7,5 @@ export const TYPE_COLOR: Record<EventType, string> = {
   cme: "#eab308",   // yellow
   gst: "#a78bfa",   // purple
   neo: "#22c55e",   // green
+  fireball: "#ec4899", // pink/magenta — atmospheric impact
 };
