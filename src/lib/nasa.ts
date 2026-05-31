@@ -10,7 +10,7 @@ import {
   type ThreatLevel,
 } from "./threat";
 
-export type EventType = "flare" | "cme" | "gst" | "neo";
+export type EventType = "flare" | "cme" | "gst" | "neo" | "fireball";
 
 export interface DashEvent {
   id: string;
@@ -28,6 +28,13 @@ export interface DashEvent {
   earthDirected?: boolean;
   missLD?: number; // neo: miss distance in lunar distances
   diameter?: number; // neo: avg diameter in meters
+  // fireball
+  energyKt?: number; // total radiated energy, kilotons TNT
+  impactEnergyKt?: number; // total impact energy
+  lat?: number; // signed latitude (N+/S-)
+  lon?: number; // signed longitude (E+/W-)
+  altKm?: number; // altitude of peak brightness
+  locationLabel?: string | null; // e.g. "Boston, MA region"
 }
 
 const LD_KM = 384_400;
