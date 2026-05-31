@@ -186,6 +186,7 @@ export function SpaceCanvas() {
   const cmes = active.filter((a) => a.ev.type === "cme");
   const gsts = active.filter((a) => a.ev.type === "gst");
   const neos = active.filter((a) => a.ev.type === "neo");
+  const fireballs = active.filter((a) => a.ev.type === "fireball");
 
   const flareGlowColor = flares.length > 0 ? TYPE_COLOR.flare : null;
   const gstGlowColor = gsts.length > 0 ? TYPE_COLOR.gst : null;
