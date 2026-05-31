@@ -10,6 +10,8 @@ import {
   type ThreatLevel,
 } from "./threat";
 
+import { fireballThreat, laymanFireball } from "./threat";
+
 export type EventType = "flare" | "cme" | "gst" | "neo" | "fireball";
 
 export interface DashEvent {
