@@ -5,7 +5,7 @@ import { RightRail } from "@/components/RightRail";
 import { Timeline } from "@/components/Timeline";
 import { TopBar } from "@/components/TopBar";
 import { useDash } from "@/state/dashboard";
-import { fetchDonki, fetchNeos, normalizeDonki, normalizeNeos, rangeLastNDays } from "@/lib/nasa";
+import { fetchDonki, fetchFireballs, fetchNeos, normalizeDonki, normalizeFireballs, normalizeNeos, rangeLastNDays } from "@/lib/nasa";
 
 export const Route = createFileRoute("/")({
   component: Index,
