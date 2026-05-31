@@ -41,6 +41,7 @@ export function TopBar() {
         <Counter label="CME" value={counts.cme ?? 0} color={TYPE_COLOR.cme} />
         <Counter label="GST" value={counts.gst ?? 0} color={TYPE_COLOR.gst} />
         <Counter label="NEO" value={counts.neo ?? 0} color={TYPE_COLOR.neo} />
+        <Counter label="FIR" value={counts.fireball ?? 0} color={TYPE_COLOR.fireball} />
         <div className="border-l border-slate-800 pl-5">
           <div className="text-slate-500">UTC</div>
           <div className="text-slate-100">{now.toISOString().replace("T", " ").slice(0, 19)}</div>

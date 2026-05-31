@@ -57,6 +57,13 @@ function eventActive(ev: DashEvent, cursor: number): { active: boolean; progress
     const active = cursor >= ev.time - 6 * 3600_000 && cursor <= ev.time + 36 * 3600_000;
     return { active, progress: 0 };
   }
+  if (ev.type === "fireball") {
+    // Visible window: ±36h around impact; progress 0→1 across that span for streak animation.
+    const span = 72 * 3600_000;
+    const t0 = ev.time - 36 * 3600_000;
+    const active = cursor >= t0 && cursor <= ev.time + 36 * 3600_000;
+    return { active, progress: Math.min(1, Math.max(0, (cursor - t0) / span)) };
+  }
   // neo — visible for a generous window around close approach so they're easy to spot
   const active = cursor >= ev.time - 3 * 24 * 3600_000 && cursor <= ev.time + 3 * 24 * 3600_000;
   return { active, progress: 0 };
@@ -179,6 +186,7 @@ export function SpaceCanvas() {
   const cmes = active.filter((a) => a.ev.type === "cme");
   const gsts = active.filter((a) => a.ev.type === "gst");
   const neos = active.filter((a) => a.ev.type === "neo");
+  const fireballs = active.filter((a) => a.ev.type === "fireball");
 
   const flareGlowColor = flares.length > 0 ? TYPE_COLOR.flare : null;
   const gstGlowColor = gsts.length > 0 ? TYPE_COLOR.gst : null;
@@ -611,6 +619,62 @@ export function SpaceCanvas() {
               </g>
             );
           })}
+
+          {/* Fireballs — atmospheric impacts. Streak from outside Earth into Earth,
+              with the marker resting at impact point just above the surface. */}
+          {fireballs.map(({ ev }) => {
+            const angle = ((ev.angleDeg ?? 0) * Math.PI) / 180;
+            const impactR = 56; // just outside Earth icon
+            const ix = EARTH_X + Math.cos(angle) * impactR;
+            const iy = EARTH_Y + Math.sin(angle) * impactR;
+            // Origin of streak: ~220 units further out along the same radial
+            const ox = EARTH_X + Math.cos(angle) * (impactR + 220);
+            const oy = EARTH_Y + Math.sin(angle) * (impactR + 220);
+            const color = TYPE_COLOR.fireball;
+            const activeSel = selectedId === ev.id;
+            // Size scales with log(energy)
+            const e = ev.impactEnergyKt ?? ev.energyKt ?? 0.05;
+            const base = Math.max(3, Math.min(11, 3 + Math.log10(e + 0.01) * 2.5));
+            return (
+              <g key={ev.id} onClick={(ev2) => { ev2.stopPropagation(); select(ev.id); }} className="cursor-pointer">
+                {/* Streak / trajectory */}
+                <line
+                  x1={ox} y1={oy} x2={ix} y2={iy}
+                  stroke={color}
+                  strokeWidth={activeSel ? 2.2 : 1.4}
+                  opacity={0.75}
+                  strokeLinecap="round"
+                  pointerEvents="none"
+                />
+                <line
+                  x1={ox} y1={oy} x2={ix} y2={iy}
+                  stroke={color}
+                  strokeWidth={6}
+                  opacity={0.18}
+                  strokeLinecap="round"
+                  pointerEvents="none"
+                />
+                {/* Impact flash */}
+                <circle cx={ix} cy={iy} r={activeSel ? base + 4 : base} fill={color} stroke="#fff" strokeWidth={activeSel ? 1.2 : 0}>
+                  <animate attributeName="opacity" values="0.6;1;0.6" dur="1.4s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={ix} cy={iy} r={base + 6} fill="none" stroke={color} strokeWidth={1.2} opacity={0.7} pointerEvents="none">
+                  <animate attributeName="r" values={`${base + 4};${base + 14};${base + 4}`} dur="1.8s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.8;0;0.8" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                {activeSel && (
+                  <circle cx={ix} cy={iy} r={base + 12} fill="none" stroke={color} strokeWidth={1.5} opacity={0.7}>
+                    <animate attributeName="r" values={`${base + 10};${base + 22};${base + 10}`} dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.9;0.1;0.9" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                )}
+                {/* Enlarged hit target */}
+                <circle cx={ix} cy={iy} r={18} fill="transparent" />
+              </g>
+            );
+          })}
+
+
 
           {/* Flare clickable nodes (small) */}
           {flares.map(({ ev }, i) => {
