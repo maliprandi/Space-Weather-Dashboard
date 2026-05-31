@@ -10,6 +10,7 @@ const LAYER_DEFS: { key: LayerKey; label: string; color: string; hint: string }[
   { key: "cme", label: "Coronal Mass Ejections", color: TYPE_COLOR.cme, hint: "NASA DONKI · CME" },
   { key: "gst", label: "Geomagnetic Storms", color: TYPE_COLOR.gst, hint: "NASA DONKI · GST" },
   { key: "neo", label: "Near-Earth Objects", color: TYPE_COLOR.neo, hint: "NASA NeoWs feed" },
+  { key: "fireball", label: "Fireballs / Bolides", color: TYPE_COLOR.fireball, hint: "JPL CNEOS atmospheric impacts" },
   { key: "orbits", label: "Earth Orbital Zones", color: "#64748b", hint: "LEO · MEO · GEO · HEO" },
   { key: "vanAllen", label: "Van Allen Belts", color: "#c4b5fd", hint: "Inner & outer radiation belts" },
   { key: "missions", label: "Spacecraft Assets", color: "#22d3ee", hint: "Curated catalog" },
