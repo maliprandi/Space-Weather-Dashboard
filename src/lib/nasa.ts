@@ -218,10 +218,7 @@ export interface FireballApiResponse {
 }
 
 export async function fetchFireballs(start: string, end: string): Promise<FireballApiResponse> {
-  const url = `https://ssd-api.jpl.nasa.gov/fireball.api?date-min=${start}&date-max=${end}&req-loc=true`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`fireball ${r.status}: ${await r.text()}`);
-  return (await r.json()) as FireballApiResponse;
+  return callFn<FireballApiResponse>("nasa-fireball", { startDate: start, endDate: end });
 }
 
 function signedLatLon(value: string | null, dir: string | null): number | undefined {
