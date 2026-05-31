@@ -205,3 +205,98 @@ export function normalizeNeos(neo: { near_earth_objects: Record<string, any[]> }
   }
   return out;
 }
+
+// ---------- CNEOS Fireball Data API (JPL) ----------
+// Public, CORS-enabled. Docs: https://ssd-api.jpl.nasa.gov/doc/fireball.html
+// Columns: date, energy (kt approx radiated, 10^10 J units), impact-e (kt total),
+// lat, lat-dir, lon, lon-dir, alt (km), vel (km/s).
+export interface FireballApiResponse {
+  signature: { source: string; version: string };
+  count: string;
+  fields: string[];
+  data: (string | null)[][];
+}
+
+export async function fetchFireballs(start: string, end: string): Promise<FireballApiResponse> {
+  const url = `https://ssd-api.jpl.nasa.gov/fireball.api?date-min=${start}&date-max=${end}&req-loc=true`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`fireball ${r.status}: ${await r.text()}`);
+  return (await r.json()) as FireballApiResponse;
+}
+
+function signedLatLon(value: string | null, dir: string | null): number | undefined {
+  if (value == null || dir == null) return undefined;
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return undefined;
+  return dir === "S" || dir === "W" ? -n : n;
+}
+
+export function normalizeFireballs(fb: FireballApiResponse): DashEvent[] {
+  const out: DashEvent[] = [];
+  if (!fb?.fields || !fb?.data) return out;
+  const idx = (k: string) => fb.fields.indexOf(k);
+  const iDate = idx("date");
+  const iEnergy = idx("energy");
+  const iImpact = idx("impact-e");
+  const iLat = idx("lat"), iLatDir = idx("lat-dir");
+  const iLon = idx("lon"), iLonDir = idx("lon-dir");
+  const iAlt = idx("alt");
+  const iVel = idx("vel");
+
+  for (const row of fb.data) {
+    const dateStr = row[iDate];
+    if (!dateStr) continue;
+    // API returns "YYYY-MM-DD HH:MM:SS" UTC
+    const t = Date.parse(dateStr.replace(" ", "T") + "Z");
+    if (!t) continue;
+    const energy = iEnergy >= 0 && row[iEnergy] != null ? parseFloat(row[iEnergy]!) : NaN;
+    const impactE = iImpact >= 0 && row[iImpact] != null ? parseFloat(row[iImpact]!) : NaN;
+    const lat = iLat >= 0 ? signedLatLon(row[iLat], row[iLatDir]) : undefined;
+    const lon = iLon >= 0 ? signedLatLon(row[iLon], row[iLonDir]) : undefined;
+    const alt = iAlt >= 0 && row[iAlt] != null ? parseFloat(row[iAlt]!) : NaN;
+    const vel = iVel >= 0 && row[iVel] != null ? parseFloat(row[iVel]!) : NaN;
+    const e = Number.isFinite(impactE) ? impactE : Number.isFinite(energy) ? energy : 0;
+    const loc = lat != null && lon != null
+      ? `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`
+      : null;
+
+    // Stable angle from lon for placement around Earth (or hash fallback).
+    let angleDeg: number;
+    if (lon != null) {
+      angleDeg = ((lon + 360) % 360);
+    } else {
+      let h = 0;
+      const s = dateStr;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+      angleDeg = ((h % 360) + 360) % 360;
+    }
+
+    out.push({
+      id: `fb-${t}-${lat ?? "x"}-${lon ?? "x"}`,
+      type: "fireball",
+      time: t,
+      title: `Fireball · ${e >= 1 ? e.toFixed(1) : e.toFixed(2)} kt`,
+      layman: laymanFireball(e, loc),
+      threat: fireballThreat(e),
+      details: [
+        ["Date (UTC)", dateStr],
+        ["Impact energy", Number.isFinite(impactE) ? `${impactE.toFixed(3)} kt TNT` : "—"],
+        ["Radiated energy", Number.isFinite(energy) ? `${energy.toFixed(3)} × 10¹⁰ J` : "—"],
+        ["Location", loc ?? "—"],
+        ["Altitude", Number.isFinite(alt) ? `${alt.toFixed(1)} km` : "—"],
+        ["Velocity", Number.isFinite(vel) ? `${vel.toFixed(2)} km/s` : "—"],
+      ],
+      raw: row,
+      angleDeg,
+      energyKt: Number.isFinite(energy) ? energy : undefined,
+      impactEnergyKt: Number.isFinite(impactE) ? impactE : undefined,
+      lat,
+      lon,
+      altKm: Number.isFinite(alt) ? alt : undefined,
+      speed: Number.isFinite(vel) ? vel : undefined,
+      locationLabel: loc,
+    });
+  }
+  return out;
+}
+
